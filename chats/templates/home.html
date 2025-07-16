@@ -262,58 +262,22 @@
           
           <!-- Chat list -->
           <div class="chat-list">
-            <!-- Chat item -->
-            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('María')">
-              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
-                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María" class="w-full h-full object-cover">
-              </div>
-              <div class="flex-1">
-                <div class="flex justify-between">
-                  <h3 class="font-semibold">María</h3>
-                  <span class="text-xs text-gray-500">10:30</span>
-                </div>
-                <p class="text-sm text-gray-600 truncate">Hola, ¿cómo estás?</p>
-              </div>
-            </div>
-            
-            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Grupo Familia')">
-              <div class="w-12 h-12 rounded-full overflow-hidden mr-3 bg-whatsapp-teal flex items-center justify-center">
-                <i class="fas fa-users text-white text-xl"></i>
-              </div>
-              <div class="flex-1">
-                <div class="flex justify-between">
-                  <h3 class="font-semibold">Grupo Familia</h3>
-                  <span class="text-xs text-gray-500">Ayer</span>
-                </div>
-                <p class="text-sm text-gray-600 truncate">Papá: ¿A qué hora es la cena?</p>
-              </div>
-            </div>
-            
+            {% for dat in data %}
             <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Carlos')">
-              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
-                <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
-              </div>
-              <div class="flex-1">
-                <div class="flex justify-between">
-                  <h3 class="font-semibold">Carlos</h3>
-                  <span class="text-xs text-gray-500">Lun</span>
+                <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+                    <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
                 </div>
-                <p class="text-sm text-gray-600 truncate">¿Viste el partido de anoche?</p>
-              </div>
-            </div>
-            
-            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Laura')">
-              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
-                <img src="https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png" alt="Laura" class="w-full h-full object-cover">
-              </div>
-              <div class="flex-1">
-                <div class="flex justify-between">
-                  <h3 class="font-semibold">Laura</h3>
-                  <span class="text-xs text-gray-500">Dom</span>
+                <div class="flex-1">
+                    <div class="flex justify-between">
+                    <h3 class="font-semibold">
+                        {{dat.username}}
+                    </h3>
+                    <span class="text-xs text-gray-500">Lun</span>
+                    </div>
+                    <p class="text-sm text-gray-600 truncate">¿Viste el partido de anoche?</p>
                 </div>
-                <p class="text-sm text-gray-600 truncate">Te envié los documentos por correo</p>
-              </div>
             </div>
+            {% endfor %}
           </div>
           
           <!-- Floating action button -->

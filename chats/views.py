@@ -7,7 +7,8 @@ from .forms import ContactForm
 def chats(request):
     if request.method == 'GET':
         data = User.objects.all()
-        return render(request, 'home.html', {'data': data})
+        contacts = ContactsModel.objects.filter(userd_id_id=request.user)
+        return render(request, 'home.html', {'data': data, 'contacts': contacts})
     
 
 def add_contacts(request, id):
@@ -26,4 +27,4 @@ def add_contacts(request, id):
             username=user_contact
         )
 
-        return HttpResponse('Ya se creo llevate de mi')
+        return HttpResponse('Ya se creo llevate de mi') 
