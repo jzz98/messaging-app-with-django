@@ -1,0 +1,29 @@
+from django.shortcuts import render, HttpResponse, get_object_or_404
+from django.contrib.auth.models import User
+from .models import ContactsModel
+from .forms import ContactForm
+
+# Create your views here.
+def chats(request):
+    if request.method == 'GET':
+        data = User.objects.all()
+        return render(request, 'home.html', {'data': data})
+    
+
+def add_contacts(request, id):
+    if request.method == 'GET':
+        user_contact = get_object_or_404(User, id=id)
+        user_actual = request.user
+
+        if user_actual == user_contact:
+            return HttpResponse('No puedes agregarte a ti mismo.')
+
+        if ContactsModel.objects.filter(userd_id=user_actual, username=user_contact).exists():
+            return HttpResponse("Este contacto ya está agregado")
+
+        nuevo_contacto = ContactsModel.objects.create(
+            userd_id=user_actual,
+            username=user_contact
+        )
+
+        return HttpResponse('Ya se creo llevate de mi')

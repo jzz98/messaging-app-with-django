@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SC NET</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'whatsapp-green': '#25D366',
+            'whatsapp-teal': '#128C7E',
+            'whatsapp-dark': '#075E54',
+            'whatsapp-light': '#DCF8C6',
+            'whatsapp-bubble': '#E1FFC7'
+          }
+        }
+      }
+    }
+  </script>
+  <style id="app-style">
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .chat-bubble {
+      max-width: 80%;
+      border-radius: 7px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    
+    .chat-bubble.sent {
+      background-color: #E1FFC7;
+      align-self: flex-end;
+      border-top-right-radius: 0;
+    }
+    
+    .chat-bubble.received {
+      background-color: white;
+      align-self: flex-start;
+      border-top-left-radius: 0;
+    }
+    
+    .chat-bubble.sent:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -10px;
+      width: 0;
+      height: 0;
+      border: 10px solid transparent;
+      border-left-color: #E1FFC7;
+      border-right: 0;
+      border-top: 0;
+      margin-top: 0;
+    }
+    
+    .chat-bubble.received:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -10px;
+      width: 0;
+      height: 0;
+      border: 10px solid transparent;
+      border-right-color: white;
+      border-left: 0;
+      border-top: 0;
+      margin-top: 0;
+    }
+    
+    .story-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      padding: 2px;
+      background: conic-gradient(#25D366, #128C7E, #25D366);
+    }
+    
+    .story-avatar img {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #667781;
+      text-align: right;
+      margin-top: 2px;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .message-status {
+      display: inline-block;
+      margin-left: 5px;
+    }
+    
+    .message-status.sent {
+      color: #b3b3b3;
+    }
+    
+    .message-status.delivered {
+      color: #b3b3b3;
+    }
+    
+    .message-status.read {
+      color: #53bdeb;
+    }
+    
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      .desktop-sidebar {
+        display: none;
+      }
+      
+      .chat-container {
+        width: 100%;
+      }
+      
+      .bottom-nav {
+        display: flex;
+      }
+    }
+    
+    /* Desktop styles */
+    @media (min-width: 769px) {
+      .bottom-nav {
+        display: none;
+      }
+      
+      .mobile-chat-header {
+        display: none;
+      }
+    }
+    
+    .media-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    .status-card {
+      width: 110px;
+      margin: 8px;
+      text-align: center;
+    }
+        
+    /* Añade este nuevo estilo para el padding en el chat */
+  .chat-container {
+      padding-bottom: 60px; /* Altura de la barra de navegación */
+    }
+    
+    /* Asegúrate que el área de mensajes tenga espacio */
+    #chatMessages {
+      padding-bottom: 16px;
+    }
+    
+    /* Estilo para el input en móviles */
+    .message-input-container {
+      position: fixed;
+      bottom: 60px; /* Encima de la barra de navegación */
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 8px;
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    /* En desktop no necesita posición fija */
+    @media (min-width: 769px) {
+      .message-input-container {
+        position: static;
+        padding: 8px;
+        border-top: none;
+      }
+      .chat-container {
+        padding-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Main container -->
+  <div class="flex flex-col h-full lg:flex-row">
+    <!-- Left sidebar (Desktop) / Main view (Mobile) -->
+    <div id="mainView" class="desktop-sidebar w-full lg:w-1/3 bg-white h-full flex flex-col">
+      <!-- Header -->
+      <div class="bg-whatsapp-dark text-white p-3 flex justify-between items-center">
+        <h1 class="text-xl font-semibold">SC NET</h1>
+        <div class="flex space-x-4">
+          <button id="tab-chats" class="tab-btn active">Chats</button>
+          <button id="tab-estados" class="tab-btn">Estados</button>
+          <button id="tab-llamadas" class="tab-btn">Llamadas</button>
+        </div>
+      </div>
+
+      <!-- Tab content container -->
+      <div class="flex-1 overflow-y-auto">
+        <!-- Chats Tab Content -->
+        <div id="content-chats" class="tab-content active">
+          <!-- Stories carousel -->
+          <div class="p-2 overflow-x-auto whitespace-nowrap border-b">
+            <!-- Your story -->
+            <div class="inline-block mx-1 text-center">
+              <div class="relative">
+                <div class="story-avatar mx-auto">
+                  <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Tu estado">
+                  <div class="absolute bottom-0 right-0 bg-whatsapp-green rounded-full p-1">
+                    <i class="fas fa-plus text-white text-xs"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs mt-1">Tu estado</div>
+            </div>
+            
+            <!-- Other stories -->
+            <div class="inline-block mx-1 text-center">
+              <div class="story-avatar mx-auto">
+                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María">
+              </div>
+              <div class="text-xs mt-1">María</div>
+            </div>
+            
+            <div class="inline-block mx-1 text-center">
+              <div class="story-avatar mx-auto">
+                <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos">
+              </div>
+              <div class="text-xs mt-1">Carlos</div>
+            </div>
+            
+            <div class="inline-block mx-1 text-center">
+              <div class="story-avatar mx-auto">
+                <img src="https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png" alt="Laura">
+              </div>
+              <div class="text-xs mt-1">Laura</div>
+            </div>
+            
+            <div class="inline-block mx-1 text-center">
+              <div class="story-avatar mx-auto">
+                <img src="https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_960_720.png" alt="Juan">
+              </div>
+              <div class="text-xs mt-1">Juan</div>
+            </div>
+          </div>
+          
+          <!-- Chat list -->
+          <div class="chat-list">
+            <!-- Chat item -->
+            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('María')">
+              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">María</h3>
+                  <span class="text-xs text-gray-500">10:30</span>
+                </div>
+                <p class="text-sm text-gray-600 truncate">Hola, ¿cómo estás?</p>
+              </div>
+            </div>
+            
+            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Grupo Familia')">
+              <div class="w-12 h-12 rounded-full overflow-hidden mr-3 bg-whatsapp-teal flex items-center justify-center">
+                <i class="fas fa-users text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">Grupo Familia</h3>
+                  <span class="text-xs text-gray-500">Ayer</span>
+                </div>
+                <p class="text-sm text-gray-600 truncate">Papá: ¿A qué hora es la cena?</p>
+              </div>
+            </div>
+            
+            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Carlos')">
+              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">Carlos</h3>
+                  <span class="text-xs text-gray-500">Lun</span>
+                </div>
+                <p class="text-sm text-gray-600 truncate">¿Viste el partido de anoche?</p>
+              </div>
+            </div>
+            
+            <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Laura')">
+              <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png" alt="Laura" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">Laura</h3>
+                  <span class="text-xs text-gray-500">Dom</span>
+                </div>
+                <p class="text-sm text-gray-600 truncate">Te envié los documentos por correo</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Floating action button -->
+          <div class="fixed bottom-20 lg:bottom-6 right-6">
+            <button class="bg-whatsapp-green text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg" onclick="showNewChatDialog()">
+              <i class="fas fa-comment text-xl"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Estados Tab Content -->
+        <div id="content-estados" class="tab-content p-4">
+          <div class="mb-4">
+            <div class="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+              <div class="relative">
+                <div class="w-12 h-12 rounded-full overflow-hidden">
+                  <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Tu estado" class="w-full h-full object-cover">
+                </div>
+                <div class="absolute bottom-0 right-0 bg-whatsapp-green rounded-full p-1">
+                  <i class="fas fa-plus text-white text-xs"></i>
+                </div>
+              </div>
+              <div class="ml-3">
+                <p class="font-medium">Mi estado</p>
+                <p class="text-xs text-gray-500">Añadir a mi estado</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="border-t pt-2">
+            <p class="text-sm text-gray-500 mb-2">Actualizaciones recientes</p>
+            
+            <div class="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+              <div class="story-avatar w-12 h-12">
+                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María">
+              </div>
+              <div class="ml-3">
+                <p class="font-medium">María</p>
+                <p class="text-xs text-gray-500">Hoy, 10:30</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+              <div class="story-avatar w-12 h-12">
+                <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos">
+              </div>
+              <div class="ml-3">
+                <p class="font-medium">Carlos</p>
+                <p class="text-xs text-gray-500">Hoy, 09:15</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+              <div class="story-avatar w-12 h-12">
+                <img src="https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_960_720.png" alt="Juan">
+              </div>
+              <div class="ml-3">
+                <p class="font-medium">Juan</p>
+                <p class="text-xs text-gray-500">Ayer, 23:45</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Llamadas Tab Content -->
+        <div id="content-llamadas" class="tab-content p-4">
+          <div class="mb-4 text-center">
+            <p class="text-whatsapp-teal">
+              <i class="fas fa-lock text-sm mr-1"></i>
+              Las llamadas están cifradas de extremo a extremo
+            </p>
+          </div>
+          
+          <div class="call-list">
+            <div class="flex items-center p-3 border-b">
+              <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">María</h3>
+                  <span class="text-sm text-gray-500">
+                    <i class="fas fa-video text-whatsapp-teal"></i>
+                  </span>
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                  <i class="fas fa-arrow-down text-red-500 mr-1"></i>
+                  Hoy, 14:23
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center p-3 border-b">
+              <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">Carlos</h3>
+                  <span class="text-sm text-gray-500">
+                    <i class="fas fa-phone text-whatsapp-teal"></i>
+                  </span>
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                  <i class="fas fa-arrow-up text-green-500 mr-1"></i>
+                  Ayer, 18:05
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center p-3 border-b">
+              <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                <img src="https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png" alt="Laura" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h3 class="font-semibold">Laura</h3>
+                  <span class="text-sm text-gray-500">
+                    <i class="fas fa-video text-whatsapp-teal"></i>
+                  </span>
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                  <i class="fas fa-arrow-up text-green-500 mr-1"></i>
+                  12/03/2025
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Floating action button -->
+          <div class="fixed bottom-20 lg:bottom-6 right-6">
+            <button class="bg-whatsapp-green text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
+              <i class="fas fa-phone-alt text-xl"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right content area / Chat view -->
+    <div id="chatView" class="hidden lg:flex lg:w-2/3 bg-[#efeae2] flex-col h-full">
+      <div class="bg-whatsapp-dark text-white p-3 flex items-center">
+        <button id="backButton" class="lg:hidden mr-2">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+          <img id="chat-profile-image" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1">
+          <h2 id="chat-profile-name" class="font-semibold">Selecciona un chat</h2>
+          <p class="text-xs">En línea</p>
+        </div>
+        <div class="flex space-x-4">
+          <button>
+            <i class="fas fa-video"></i>
+          </button>
+          <button>
+            <i class="fas fa-phone-alt"></i>
+          </button>
+          <button>
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Chat messages area -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-3 flex flex-col">
+        <div class="flex justify-center mb-4">
+          <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-500">
+            16 de Marzo de 2025
+          </div>
+        </div>
+        
+        <div class="chat-bubble received">
+          <div class="message-content">
+            Hola, ¿cómo estás?
+          </div>
+          <div class="message-time">10:30</div>
+        </div>
+        
+        <div class="chat-bubble sent">
+          <div class="message-content">
+            ¡Muy bien! ¿Y tú?
+          </div>
+          <div class="message-time">
+            10:31
+            <span class="message-status read">
+              <i class="fas fa-check-double"></i>
+            </span>
+          </div>
+        </div>
+        
+        <div class="chat-bubble received">
+          <div class="message-content">
+            Todo genial. Oye, ¿quieres ir al cine este fin de semana?
+          </div>
+          <div class="message-time">10:32</div>
+        </div>
+        
+        <div class="chat-bubble sent">
+          <div class="message-content">
+            ¡Claro! ¿Qué película te gustaría ver?
+          </div>
+          <div class="message-time">
+            10:35
+            <span class="message-status read">
+              <i class="fas fa-check-double"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Input area -->
+  <!-- Input area - Modificado -->
+ <!-- Input area - Modificado -->
+      <div class="message-input-container flex items-center" style="margin-bottom:60px;">
+        <button class="text-gray-500 p-2">
+          <i class="far fa-grin"></i>
+        </button>
+        <button class="text-gray-500 p-2">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <div class="flex-1 mx-2">
+          <input type="text" class="w-full border rounded-full px-4 py-2 focus:outline-none focus:border-whatsapp-green" placeholder="Escribe un mensaje...">
+        </div>
+        <button class="text-whatsapp-dark p-2">
+          <i class="fas fa-microphone"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- New chat dialog -->
+  <div id="newChatDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white w-11/12 max-w-md rounded-lg">
+      <div class="bg-whatsapp-dark text-white p-3 flex items-center rounded-t-lg">
+        <button onclick="hideNewChatDialog()" class="mr-4">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2 class="text-lg font-semibold">Nuevo chat</h2>
+      </div>
+      <div class="p-2">
+        <div class="bg-gray-100 flex items-center rounded-full px-3 py-1 mb-3">
+          <i class="fas fa-search text-gray-500"></i>
+          <input type="text" class="bg-transparent w-full border-none focus:outline-none px-2" placeholder="Buscar contactos...">
+        </div>
+        
+        <div class="p-3 flex items-center hover:bg-gray-100 cursor-pointer">
+          <div class="w-10 h-10 bg-whatsapp-teal rounded-full flex items-center justify-center text-white">
+            <i class="fas fa-users"></i>
+          </div>
+          <p class="ml-3 font-medium">Nuevo grupo</p>
+        </div>
+        
+        {% for dat in data %}
+        <a href="/home/chat/add-contact/{{dat.id}}" class="p-3 flex items-center hover:bg-gray-100 cursor-pointer">
+            <div class="w-10 h-10 rounded-full overflow-hidden">
+                <img src="https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg" alt="María" class="w-full h-full object-cover">
+            </div>
+            <p class="ml-3 font-medium">
+                {{dat.username}}
+            </p>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile bottom navigation -->
+  <div class="bottom-nav fixed bottom-0 left-0 right-0 bg-whatsapp-dark text-white flex justify-around py-3">
+    <button class="tab-btn-mobile active" data-target="content-chats">
+      <i class="fas fa-comment"></i>
+      <span class="text-xs block">Chats</span>
+    </button>
+    <button class="tab-btn-mobile" data-target="content-estados">
+      <i class="fas fa-circle-notch"></i>
+      <span class="text-xs block">Estados</span>
+    </button>
+    <button class="tab-btn-mobile" data-target="content-llamadas">
+      <i class="fas fa-phone-alt"></i>
+      <span class="text-xs block">Llamadas</span>
+    </button>
+  </div>
+
+  <script id="app-script">
+    // Tab switching functionality
+    document.querySelectorAll('.tab-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        // Remove active class from all buttons and content
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        // Show corresponding content
+        const tabId = this.id.split('-')[1];
+        document.getElementById(`content-${tabId}`).classList.add('active');
+      });
+    });
+    
+    // Mobile tab switching
+    document.querySelectorAll('.tab-btn-mobile').forEach(button => {
+      button.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn-mobile').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        this.classList.add('active');
+        const targetId = this.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+    
+    // Open chat function
+    function openChat(name) {
+      const chatView = document.getElementById('chatView');
+      const mainView = document.getElementById('mainView');
+      const profileName = document.getElementById('chat-profile-name');
+      const profileImage = document.getElementById('chat-profile-image');
+      
+      // Set chat details
+      profileName.textContent = name;
+      
+      // Set profile image based on name
+      if (name === 'María') {
+        profileImage.src = 'https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg';
+      } else if (name === 'Carlos') {
+        profileImage.src = 'https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png';
+      } else if (name === 'Laura') {
+        profileImage.src = 'https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png';
+      } else if (name === 'Juan') {
+        profileImage.src = 'https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_960_720.png';
+      } else if (name === 'Grupo Familia') {
+        profileImage.src = 'https://cdn.pixabay.com/photo/2016/11/14/17/39/group-1824145_960_720.png';
+      }
+      
+      // Show chat view on mobile
+      if (window.innerWidth < 768) {
+        mainView.classList.add('hidden');
+        chatView.classList.remove('hidden');
+        chatView.classList.add('flex');
+        chatView.classList.add('flex-col');
+        chatView.classList.add('w-full');
+      }
+    }
+    
+    // Back button on mobile
+    document.getElementById('backButton').addEventListener('click', function() {
+      const chatView = document.getElementById('chatView');
+      const mainView = document.getElementById('mainView');
+      
+      chatView.classList.add('hidden');
+      mainView.classList.remove('hidden');
+    });
+    
+    // New chat dialog
+    function showNewChatDialog() {
+      document.getElementById('newChatDialog').classList.remove('hidden');
+    }
+    
+    function hideNewChatDialog() {
+      document.getElementById('newChatDialog').classList.add('hidden');
+    }
+    
+    // Close dialog when clicking outside
+    document.getElementById('newChatDialog').addEventListener('click', function(event) {
+      if (event.target === this) {
+        hideNewChatDialog();
+      }
+    });
+  </script>
+</body>
+</html>
