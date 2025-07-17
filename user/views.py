@@ -13,7 +13,8 @@ def singup(request):
             return redirect('login')
         except IntegrityError:
             return render(request, 'register.html', {'error': "Cuenta existente"})
-    return render(request, 'register.html')
+    else:
+        return render(request, 'register.html')
 
 
 def login_view(request):
@@ -28,7 +29,7 @@ def login_view(request):
                 return render(request, 'login.html', {'error': 'Credenciaeles incorrectas'})
 
             login(request, user)
-            return HttpResponse("tu sabe")
+            return redirect('chat')
         
         except IntegrityError:
             return render(request, 'login.html', {'error': 'Usuario no existe'})

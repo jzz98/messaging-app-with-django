@@ -2,6 +2,8 @@ from django.shortcuts import render, HttpResponse, get_object_or_404
 from django.contrib.auth.models import User
 from .models import ContactsModel
 from .forms import ContactForm
+from django.core.cache import cache
+from django.http import HttpResponse
 
 # Create your views here.
 def chats(request):
