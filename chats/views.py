@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, get_object_or_404
+from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
 from django.contrib.auth.models import User
 from .models import ContactsModel
 from .forms import ContactForm
@@ -29,4 +29,4 @@ def add_contacts(request, id):
             username=user_contact
         )
 
-        return HttpResponse('Ya se creo llevate de mi') 
+        return redirect('/home/chat')
