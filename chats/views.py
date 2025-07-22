@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from .models import ContactsModel
 from .forms import ContactForm
 from django.http import HttpResponse
+import uuid
 import datetime
 #db 
 from .db.redis import DbConfig
@@ -36,14 +37,18 @@ def add_contacts(request, id):
         return redirect('/home/chat')
 
 def chats(request, id_user):
-    
+    info_user = ContactsModel.objects.filter(id=id_user)
+    user_id = User.objects.filter(id=info_user[0].username_id)
+
     if request.method == 'POST':
         message = request.POST['mensaje']
         id_messages = db.redis.incr("id_messages")
+        
+        print("dasdadad",user_id[0].id)
         db.redis.hset(f"mensaje:{id_messages}", mapping={
             'id': id_messages,
             'id_emit': request.user.id, 
-            'id_receiver': id_user,
+            'id_receiver': user_id[0].id,
             'message': message,
             'date': str(datetime.datetime.now())
         })
@@ -52,15 +57,18 @@ def chats(request, id_user):
 
     if request.method == 'GET':
         mensajes_filtrados = []
-    
+        mensajes_recividos = []
+
         for key in db.redis.scan_iter("mensaje:*"):
-            datos = db.redis.hgetall(key)
+            datos = db.redis.hgetall(key)   
             mensaje = {k.decode(): v.decode() for k, v in datos.items()}
 
-            print(mensaje['id_receiver'])
-            if mensaje['id_receiver'] == str(id_user): 
-                print("$$$$")
+            if mensaje['id_receiver'] == str(user_id[0].id): 
                 mensajes_filtrados.append(mensaje)
 
+            if mensaje['id_receiver'] == str(request.user.id):
+                mensajes_recividos.append(mensaje)  
+
+        print('@@@@@',mensajes_recividos)
         info_contact = ContactsModel.objects.filter(id=id_user, userd_id_id=request.user.id) 
-        return render(request, 'chat.html', {'messsages': mensajes_filtrados, 'info': info_contact})
+        return render(request, 'chat.html', {'messsages': mensajes_filtrados, 'info': info_contact, 'mensajes_recibidos': mensajes_recividos})

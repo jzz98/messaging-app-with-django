@@ -244,6 +244,21 @@
             <div class="message-time">10:30</div>
           </div>
           {% endfor %}
+          {% for received in mensajes_recibidos %}
+          <div class="flex justify-center mb-4">
+            <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-500">
+              16 de Marzo de 2025
+            </div>
+          </div>
+          
+          <div class="chat-bubble received">
+            <div class="message-content">
+              {{ received.message }}
+            </div>
+            <div class="message-time">10:30</div>
+          </div>
+          {% endfor %}
+          
       </div>
       
       <!-- Input area -->

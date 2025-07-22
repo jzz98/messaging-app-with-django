@@ -263,15 +263,15 @@
           <!-- Chat list -->
           <div class="chat-list">
             {% if contacts %}
-              {% for data in contacts %}
-                <a href="/home/chat/dialog/{{data.id}}" class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" >
+              {% for info in contacts %}
+                <a href="/home/chat/dialog/{{ info.id }}" class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" >
                   <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
                       <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
                   </div>
                   <div class="flex-1">
                       <div class="flex justify-between">
                       <h3 class="font-semibold">
-                          {{data.username}}
+                          {{info.username}}
                       </h3>
                       <span class="text-xs text-gray-500">Lun</span>
                       </div>
