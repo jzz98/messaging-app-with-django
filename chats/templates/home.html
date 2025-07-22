@@ -263,21 +263,21 @@
           <!-- Chat list -->
           <div class="chat-list">
             {% if contacts %}
-              {% for dat in contacts %}
-              <div class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" onclick="openChat('Carlos')">
+              {% for data in contacts %}
+                <a href="/home/chat/dialog/{{data.id}}" class="chat-item p-3 border-b flex items-center hover:bg-gray-100 cursor-pointer" >
                   <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
                       <img src="https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png" alt="Carlos" class="w-full h-full object-cover">
                   </div>
                   <div class="flex-1">
                       <div class="flex justify-between">
                       <h3 class="font-semibold">
-                          {{dat.username}}
+                          {{data.username}}
                       </h3>
                       <span class="text-xs text-gray-500">Lun</span>
                       </div>
                       <p class="text-sm text-gray-600 truncate">¿Viste el partido de anoche?</p>
                   </div>
-              </div>
+                </a>
               {% endfor %}
             {% endif %}
           </div>
