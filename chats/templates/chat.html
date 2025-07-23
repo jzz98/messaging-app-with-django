@@ -230,7 +230,7 @@
       {% endfor %}
       
       <!-- Chat messages area -->
-      <div id="chatMessages" class="flex-1 overflow-y-auto p-3 flex flex-col">
+      <div id="chat-box" class="flex-1 overflow-y-auto p-3 flex flex-col">
           {% for information in messsages %}
           <div class="flex justify-center mb-4">
             <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-500">
@@ -259,13 +259,13 @@
             <div class="message-time">10:30</div>
           </div>
           {% endfor %}
-          
+
       </div>
       
       <!-- Input area -->
   <!-- Input area - Modificado -->
  <!-- Input area - Modificado -->
-      <form class="message-input-container flex items-center" style="margin-bottom:60px;">
+      <div class="message-input-container flex items-center" style="margin-bottom:60px;">
         {% csrf_token %}
         <button class="text-gray-500 p-2">
           <i class="far fa-grin"></i>
@@ -279,7 +279,7 @@
         <button type="button" id="send-btn" class="text-whatsapp-dark p-2">
             <i class="fa-solid fa-paper-plane"></i>        
         </button>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -335,7 +335,10 @@
       <span class="text-xs block">Llamadas</span>
     </button>
   </div>
+    <script>
+          const userId = "{{ request.user.id }}"; // esto se interpolará correctamente por Django
 
+    </script>
     <script src="{% static 'chat.js' %}" type="module"></script>
 </body>
 </html>

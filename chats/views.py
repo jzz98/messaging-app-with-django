@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .db.redis import DbConfig
+from django.http import JsonResponse
 import uuid
 import datetime
 import json
@@ -61,7 +62,7 @@ def chats(request, id_user):
         async_to_sync(channel_layer.group_send)(
             f"user_{user_id[0].id}",
             {
-                "type": "chat.message",
+                "type": "chats.message",
                 "message": message,
                 "sender_id": request.user.id,
                 "receiver_id": user_id[0].id,
@@ -69,7 +70,7 @@ def chats(request, id_user):
             }
         )
 
-        return redirect(f'/home/chat/dialog/{id_user}')
+        return JsonResponse({"status": "ok"})
 
     if request.method == 'GET':
         mensajes_filtrados = []
@@ -86,4 +87,4 @@ def chats(request, id_user):
                 mensajes_recividos.append(mensaje)  
 
         info_contact = ContactsModel.objects.filter(id=id_user, userd_id_id=request.user.id) 
-        return render(request, 'chat.html', {'messsages': mensajes_filtrados, 'info': info_contact, 'mensajes_recibidos': mensajes_recividos})
+        return render(request, 'chat.html', {'info': info_contact, 'mensajes_recibidos': mensajes_recividos, 'messsages': mensajes_filtrados})
