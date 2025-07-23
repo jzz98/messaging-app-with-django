@@ -62,7 +62,7 @@ def chats(request, id_user):
         async_to_sync(channel_layer.group_send)(
             f"user_{user_id[0].id}",
             {
-                "type": "chats.message",
+                "type": "chat.message",
                 "message": message,
                 "sender_id": request.user.id,
                 "receiver_id": user_id[0].id,
@@ -87,4 +87,4 @@ def chats(request, id_user):
                 mensajes_recividos.append(mensaje)  
 
         info_contact = ContactsModel.objects.filter(id=id_user, userd_id_id=request.user.id) 
-        return render(request, 'chat.html', {'info': info_contact, 'mensajes_recibidos': mensajes_recividos, 'messsages': mensajes_filtrados})
+        return render(request, 'chat.html', {'info': info_contact})
