@@ -6,5 +6,5 @@ from chats.urls import urlpatterns_chats
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(urlpatterns)),
-    path('home/', include(urlpatterns_chats))
+    path('home/', include(urlpatterns_chats)),
 ]

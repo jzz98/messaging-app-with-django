@@ -3,12 +3,16 @@ from django.contrib.auth.models import User
 from .models import ContactsModel
 from .forms import ContactForm
 from django.http import HttpResponse
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from .db.redis import DbConfig
 import uuid
 import datetime
+import json
 #db 
-from .db.redis import DbConfig
 
 db = DbConfig()
+
 # Create your views here.
 def home(request):
     if request.method == 'GET':
@@ -41,10 +45,10 @@ def chats(request, id_user):
     user_id = User.objects.filter(id=info_user[0].username_id)
 
     if request.method == 'POST':
-        message = request.POST['mensaje']
+        data = json.loads(request.body)
+        message = data.get('mensaje')        
         id_messages = db.redis.incr("id_messages")
-        
-        print("dasdadad",user_id[0].id)
+
         db.redis.hset(f"mensaje:{id_messages}", mapping={
             'id': id_messages,
             'id_emit': request.user.id, 
@@ -52,6 +56,18 @@ def chats(request, id_user):
             'message': message,
             'date': str(datetime.datetime.now())
         })
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user_id[0].id}",
+            {
+                "type": "chat.message",
+                "message": message,
+                "sender_id": request.user.id,
+                "receiver_id": user_id[0].id,
+                "date": str(datetime.datetime.now())
+            }
+        )
 
         return redirect(f'/home/chat/dialog/{id_user}')
 
@@ -69,6 +85,5 @@ def chats(request, id_user):
             if mensaje['id_receiver'] == str(request.user.id):
                 mensajes_recividos.append(mensaje)  
 
-        print('@@@@@',mensajes_recividos)
         info_contact = ContactsModel.objects.filter(id=id_user, userd_id_id=request.user.id) 
         return render(request, 'chat.html', {'messsages': mensajes_filtrados, 'info': info_contact, 'mensajes_recibidos': mensajes_recividos})

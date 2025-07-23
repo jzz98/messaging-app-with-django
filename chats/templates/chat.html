@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -264,7 +265,7 @@
       <!-- Input area -->
   <!-- Input area - Modificado -->
  <!-- Input area - Modificado -->
-      <form method="post" class="message-input-container flex items-center" style="margin-bottom:60px;">
+      <form class="message-input-container flex items-center" style="margin-bottom:60px;">
         {% csrf_token %}
         <button class="text-gray-500 p-2">
           <i class="far fa-grin"></i>
@@ -273,9 +274,9 @@
           <i class="fas fa-paperclip"></i>
         </button>
         <div class="flex-1 mx-2">
-          <input type="text" name="mensaje" class="w-full border rounded-full px-4 py-2 focus:outline-none focus:border-whatsapp-green" placeholder="Escribe un mensaje...">
+          <input type="text" id="mensaje" name="mensaje" class="w-full border rounded-full px-4 py-2 focus:outline-none focus:border-whatsapp-green" placeholder="Escribe un mensaje...">
         </div>
-        <button class="text-whatsapp-dark p-2">
+        <button type="button" id="send-btn" class="text-whatsapp-dark p-2">
             <i class="fa-solid fa-paper-plane"></i>        
         </button>
       </form>
@@ -335,92 +336,6 @@
     </button>
   </div>
 
-  <script id="app-script">
-    // Tab switching functionality
-    document.querySelectorAll('.tab-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        // Remove active class from all buttons and content
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        // Add active class to clicked button
-        this.classList.add('active');
-        
-        // Show corresponding content
-        const tabId = this.id.split('-')[1];
-        document.getElementById(`content-${tabId}`).classList.add('active');
-      });
-    });
-    
-    // Mobile tab switching
-    document.querySelectorAll('.tab-btn-mobile').forEach(button => {
-      button.addEventListener('click', function() {
-        document.querySelectorAll('.tab-btn-mobile').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        this.classList.add('active');
-        const targetId = this.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
-      });
-    });
-    
-    // Open chat function
-    function openChat(name) {
-      const chatView = document.getElementById('chatView');
-      const mainView = document.getElementById('mainView');
-      const profileName = document.getElementById('chat-profile-name');
-      const profileImage = document.getElementById('chat-profile-image');
-      
-      // Set chat details
-      profileName.textContent = name;
-      
-      // Set profile image based on name
-      if (name === 'María') {
-        profileImage.src = 'https://cdn.pixabay.com/photo/2017/02/16/23/10/smile-2072907_960_720.jpg';
-      } else if (name === 'Carlos') {
-        profileImage.src = 'https://cdn.pixabay.com/photo/2018/08/28/13/29/avatar-3637561_960_720.png';
-      } else if (name === 'Laura') {
-        profileImage.src = 'https://cdn.pixabay.com/photo/2017/03/01/22/18/avatar-2109804_960_720.png';
-      } else if (name === 'Juan') {
-        profileImage.src = 'https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_960_720.png';
-      } else if (name === 'Grupo Familia') {
-        profileImage.src = 'https://cdn.pixabay.com/photo/2016/11/14/17/39/group-1824145_960_720.png';
-      }
-      
-      // Show chat view on mobile
-      if (window.innerWidth < 768) {
-        mainView.classList.add('hidden');
-        chatView.classList.remove('hidden');
-        chatView.classList.add('flex');
-        chatView.classList.add('flex-col');
-        chatView.classList.add('w-full');
-      }
-    }
-    
-    // Back button on mobile
-    document.getElementById('backButton').addEventListener('click', function() {
-      const chatView = document.getElementById('chatView');
-      const mainView = document.getElementById('mainView');
-      
-      chatView.classList.add('hidden');
-      mainView.classList.remove('hidden');
-    });
-    
-    // New chat dialog
-    function showNewChatDialog() {
-      document.getElementById('newChatDialog').classList.remove('hidden');
-    }
-    
-    function hideNewChatDialog() {
-      document.getElementById('newChatDialog').classList.add('hidden');
-    }
-    
-    // Close dialog when clicking outside
-    document.getElementById('newChatDialog').addEventListener('click', function(event) {
-      if (event.target === this) {
-        hideNewChatDialog();
-      }
-    });
-  </script>
+    <script src="{% static 'chat.js' %}" type="module"></script>
 </body>
 </html>

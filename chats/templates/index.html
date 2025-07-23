@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <input id="msgInput" />
+  <button onclick="sendMessage()">Enviar</button>
+  <ul id="messages"></ul>
+
+  <script>
+  const userId1 = 1;
+  const userId2 = 2;
+  const roomName = `chat_${Math.min(userId1, userId2)}_${Math.max(userId1, userId2)}`;
+
+  const socket = new WebSocket(`ws://localhost:8000/ws/chat/${roomName}/`);
+
+  socket.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      console.log("Mensaje recibido:", data.message);
+  };
+
+  function sendMessage(message) {
+      socket.send(JSON.stringify({ message }));
+  }
+  </script>
+</body>
+</html>
