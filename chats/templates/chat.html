@@ -232,11 +232,6 @@
       <!-- Chat messages area -->
       <div id="chat-box" class="flex-1 overflow-y-auto p-3 flex flex-col">
           {% for information in messsages %}
-          <div class="flex justify-center mb-4">
-            <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-500">
-              16 de Marzo de 2025
-            </div>
-          </div>
           
           <div class="chat-bubble sent">
             <div class="message-content">
@@ -246,12 +241,6 @@
           </div>
           {% endfor %}
           {% for received in mensajes_recibidos %}
-          <div class="flex justify-center mb-4">
-            <div class="bg-white rounded-lg px-3 py-1 text-xs text-gray-500">
-              16 de Marzo de 2025
-            </div>
-          </div>
-          
           <div class="chat-bubble received">
             <div class="message-content">
               {{ received.message }}

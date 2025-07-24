@@ -47,10 +47,41 @@ const messageInput = document.getElementById("mensaje");
 const sendBtn = document.getElementById("send-btn");
 
 sendBtn.addEventListener('click', () => {
-    const message = messageInput.value;
-    const httpEndpoint = window.location.href;
+    const message = messageInput.value.trim();
+    const chatBox = document.getElementById("chat-box");
 
-    // Enviar por WebSocket
+    if (!chatBox) {
+        console.error("❌ No se encontró el elemento con id='chat-box'");
+        return;
+    }
+
+    if (!message) {
+        console.warn("⚠️ Mensaje vacío, no se envía ni se muestra.");
+        return;
+    }
+
+    // Crear burbuja
+    const bubble = document.createElement("div");
+    bubble.className = "chat-bubble sent";
+
+    const content = document.createElement("div");
+    content.className = "message-content";
+    content.textContent = message;
+
+    const time = document.createElement("div");
+    time.className = "message-time";
+    const now = new Date();
+    time.textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    bubble.appendChild(content);
+    bubble.appendChild(time);
+
+    chatBox.appendChild(bubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    console.log("✅ Mensaje agregado al DOM:", message);
+
+    // Enviar por WebSocket (opcional)
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
             type: "chat.message",
@@ -58,8 +89,8 @@ sendBtn.addEventListener('click', () => {
         }));
     }
 
-    // Enviar por HTTP POST (por si también quieres guardarlo en base de datos)
-    fetch(httpEndpoint, {
+    // Enviar por HTTP (opcional)
+    fetch(window.location.href, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

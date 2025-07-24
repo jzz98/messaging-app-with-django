@@ -87,4 +87,4 @@ def chats(request, id_user):
                 mensajes_recividos.append(mensaje)  
 
         info_contact = ContactsModel.objects.filter(id=id_user, userd_id_id=request.user.id) 
-        return render(request, 'chat.html', {'info': info_contact})
+        return render(request, 'chat.html', {'info': info_contact, 'messsages': mensajes_filtrados, 'mensajes_recibidos': mensajes_recividos})
