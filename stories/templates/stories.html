@@ -1,0 +1,451 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SC NET - Historias</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'whatsapp-green': '#25D366',
+            'whatsapp-teal': '#128C7E',
+            'whatsapp-dark': '#075E54',
+            'whatsapp-light': '#DCF8C6',
+            'whatsapp-bubble': '#E1FFC7'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .story-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      padding: 2px;
+      background: conic-gradient(#25D366, #128C7E, #25D366);
+    }
+    
+    .story-avatar img {
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .status-card {
+      width: 110px;
+      margin: 8px;
+      text-align: center;
+    }
+    
+    .status-container {
+      display: flex;
+      overflow-x: auto;
+      padding: 10px 0;
+      scrollbar-width: none; /* Firefox */
+    }
+    
+    .status-container::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+    
+    .camera-preview {
+      width: 100%;
+      height: 70vh;
+      background-color: black;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .camera-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    
+    .capture-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: white;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .camera-actions {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 10;
+    }
+    
+    .camera-action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.4);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .preview-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .preview-actions {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      padding: 0 20px;
+      z-index: 10;
+    }
+    
+    .preview-btn {
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Main container -->
+  <div class="flex flex-col h-screen">
+    <!-- Header -->
+    <div class="bg-whatsapp-dark text-white p-3 flex items-center justify-between">
+      <button onclick="window.history.back()" class="text-white">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h1 class="text-lg font-semibold">Nueva historia</h1>
+      <div class="w-6"></div> <!-- Espacio para equilibrar -->
+    </div>
+    
+    <!-- Camera/Preview area -->
+    <div class="flex-1 relative">
+      <!-- Camera view (default) -->
+      <div id="cameraView" class="camera-preview">
+        <video id="cameraStream" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div class="camera-controls">
+          <button id="captureBtn" class="capture-btn">
+            <div class="w-12 h-12 rounded-full bg-white"></div>
+          </button>
+        </div>
+        <div class="camera-actions">
+          <button id="flipCameraBtn" class="camera-action-btn">
+            <i class="fas fa-camera-rotate"></i>
+          </button>
+          <button id="flashBtn" class="camera-action-btn">
+            <i class="fas fa-bolt"></i>
+          </button>
+          <button id="closeCameraBtn" class="camera-action-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Preview view (hidden by default) -->
+      <div id="previewView" class="camera-preview hidden">
+        <div class="preview-container">
+          <img id="photoPreview" class="w-full h-full object-contain">
+          <div class="preview-actions">
+            <button id="retakeBtn" class="preview-btn bg-gray-600 text-white">
+              <i class="fas fa-redo mr-2"></i>Volver a tomar
+            </button>
+            <button id="sendStoryBtn" class="preview-btn bg-whatsapp-green text-white">
+              <i class="fas fa-paper-plane mr-2"></i>Publicar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bottom options -->
+    <div class="bg-white p-4 border-t border-gray-200">
+      <div class="flex justify-around">
+        <button id="photoLibraryBtn" class="flex flex-col items-center">
+          <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+            <i class="fas fa-images text-gray-600"></i>
+          </div>
+          <span class="text-xs mt-1">Galería</span>
+        </button>
+        <button id="textStoryBtn" class="flex flex-col items-center">
+          <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+            <i class="fas fa-font text-gray-600"></i>
+          </div>
+          <span class="text-xs mt-1">Texto</span>
+        </button>
+        <button id="drawStoryBtn" class="flex flex-col items-center">
+          <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+            <i class="fas fa-pencil text-gray-600"></i>
+          </div>
+          <span class="text-xs mt-1">Dibujar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text Story Editor Modal -->
+  <div id="textStoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white w-11/12 max-w-md rounded-lg p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Historia de texto</h2>
+        <button onclick="document.getElementById('textStoryModal').classList.add('hidden')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="mb-4">
+        <textarea id="storyText" class="w-full border rounded-lg p-2 h-32" placeholder="Escribe tu texto aquí..."></textarea>
+      </div>
+      <div class="flex justify-between mb-4">
+        <button id="changeBgColor" class="w-8 h-8 rounded-full bg-whatsapp-green"></button>
+        <button id="changeTextColor" class="w-8 h-8 rounded-full bg-black"></button>
+        <button id="changeFont" class="px-3 py-1 border rounded-lg">Fuente</button>
+      </div>
+      <button id="publishTextStoryBtn" class="w-full bg-whatsapp-green text-white py-2 rounded-lg">
+        Publicar historia
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Función para convertir DataURL a Blob
+function dataURLtoBlob(dataURL) {
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
+// Evento del botón Publicar
+document.getElementById('sendStoryBtn').addEventListener('click', async function() {
+  const photoPreview = document.getElementById('photoPreview');
+  const imageSrc = photoPreview.src;
+  
+  if (!imageSrc.startsWith('data:image')) {
+    alert('No hay imagen para publicar');
+    return;
+  }
+
+  // Convertir a Blob
+  const blob = dataURLtoBlob(imageSrc);
+  const fileName = `story_${Date.now()}.jpg`;
+  
+  // Crear FormData
+  const formData = new FormData();
+  formData.append('file', blob, fileName);
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+  try {
+    const response = await fetch(`${window.location.href}`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      alert('Historia publicada con éxito');
+      window.location.href = '/'; // Redirige después de publicar
+    } else {
+      throw new Error(result.message || 'Error al publicar');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al publicar la historia');
+  }
+});
+    // Variables para la cámara
+    let stream = null;
+    let facingMode = "user"; // front camera by default
+    let flashOn = false;
+    
+    // Elementos del DOM
+    const cameraView = document.getElementById('cameraView');
+    const cameraStream = document.getElementById('cameraStream');
+    const previewView = document.getElementById('previewView');
+    const photoPreview = document.getElementById('photoPreview');
+    const captureBtn = document.getElementById('captureBtn');
+    const flipCameraBtn = document.getElementById('flipCameraBtn');
+    const flashBtn = document.getElementById('flashBtn');
+    const closeCameraBtn = document.getElementById('closeCameraBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const sendStoryBtn = document.getElementById('sendStoryBtn');
+    const photoLibraryBtn = document.getElementById('photoLibraryBtn');
+    const textStoryBtn = document.getElementById('textStoryBtn');
+    const drawStoryBtn = document.getElementById('drawStoryBtn');
+    
+    // Iniciar la cámara
+    async function startCamera() {
+      try {
+        const constraints = {
+          video: { 
+            facingMode: facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        };
+        
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        cameraStream.srcObject = stream;
+      } catch (err) {
+        console.error("Error al acceder a la cámara:", err);
+        alert("No se pudo acceder a la cámara. Asegúrate de haber dado los permisos necesarios.");
+      }
+    }
+    
+    // Detener la cámara
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        cameraStream.srcObject = null;
+      }
+    }
+    
+    // Capturar foto
+    function capturePhoto() {
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraStream.videoWidth;
+      canvas.height = cameraStream.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+      
+      const photoUrl = canvas.toDataURL('image/jpeg');
+      photoPreview.src = photoUrl;
+      
+      // Cambiar a vista de previsualización
+      cameraView.classList.add('hidden');
+      previewView.classList.remove('hidden');
+      
+      // Detener la cámara para ahorrar recursos
+      stopCamera();
+    }
+    
+    // Volver a tomar foto
+    function retakePhoto() {
+      previewView.classList.add('hidden');
+      cameraView.classList.remove('hidden');
+      startCamera();
+    }
+    
+    // Enviar historia
+    function sendStory() {
+      // Aquí iría la lógica para subir la foto al servidor
+      const photoUrl = photoPreview.src;
+      console.log("Foto para publicar:", photoUrl);
+      
+      // Simulación de publicación exitosa
+      alert("Historia publicada exitosamente!");
+      
+      // Volver a la cámara
+      retakePhoto();
+    }
+    
+    // Cambiar entre cámaras frontal/trasera
+    async function flipCamera() {
+      facingMode = facingMode === "user" ? "environment" : "user";
+      stopCamera();
+      await startCamera();
+    }
+    
+    // Alternar flash
+    function toggleFlash() {
+      flashOn = !flashOn;
+      flashBtn.innerHTML = flashOn ? '<i class="fas fa-bolt-lightning"></i>' : '<i class="fas fa-bolt"></i>';
+      // Nota: El flash real requeriría API específica y no todos los dispositivos/dispositivos lo soportan
+    }
+    
+    // Abrir galería de fotos
+    function openPhotoLibrary() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            photoPreview.src = event.target.result;
+            cameraView.classList.add('hidden');
+            previewView.classList.remove('hidden');
+            stopCamera();
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      
+      input.click();
+    }
+    
+    // Abrir editor de texto
+    function openTextStoryEditor() {
+      document.getElementById('textStoryModal').classList.remove('hidden');
+    }
+    
+    // Event listeners
+    captureBtn.addEventListener('click', capturePhoto);
+    flipCameraBtn.addEventListener('click', flipCamera);
+    flashBtn.addEventListener('click', toggleFlash);
+    closeCameraBtn.addEventListener('click', () => window.history.back());
+    retakeBtn.addEventListener('click', retakePhoto);
+    sendStoryBtn.addEventListener('click', sendStory);
+    photoLibraryBtn.addEventListener('click', openPhotoLibrary);
+    textStoryBtn.addEventListener('click', openTextStoryEditor);
+    drawStoryBtn.addEventListener('click', () => alert("Función de dibujo no implementada"));
+    
+    // Publicar historia de texto
+    document.getElementById('publishTextStoryBtn').addEventListener('click', function() {
+      const text = document.getElementById('storyText').value;
+      if (text.trim() === '') {
+        alert("Por favor escribe algún texto");
+        return;
+      }
+      
+      // Aquí iría la lógica para subir la historia de texto al servidor
+      console.log("Historia de texto:", text);
+      alert("Historia de texto publicada!");
+      document.getElementById('textStoryModal').classList.add('hidden');
+    });
+    
+    // Iniciar la cámara cuando se carga la página
+    window.addEventListener('DOMContentLoaded', startCamera);
+    
+    // Detener la cámara cuando se cierra la página
+    window.addEventListener('beforeunload', stopCamera);
+  </script>
+</body>
+</html>
